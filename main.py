@@ -16,7 +16,7 @@ np.random.seed(42)
 
 @dataclass
 class ExperimentConfig:
-    """Configuration for experiments"""
+    #Configuration for experiments
     n_users: int = 5
     demos_per_user: int = 10
     grid_size: int = 10
@@ -32,7 +32,7 @@ class ExperimentConfig:
     prior_variance: float = 1.0
 
 class GridWorld:
-    """Gridworld environment with obstacles"""
+    #Gridworld environment with obstacles
     
     def __init__(self, size: int = 10, obstacles: List[Tuple[int, int]] = None):
         self.size = size
@@ -99,7 +99,7 @@ class GridWorld:
         return np.array(features)
 
 class StochasticMaze:
-    """Stochastic maze environment with slip dynamics"""
+    #Stochastic maze environment with slip dynamics
     
     def __init__(self, size: int = 12, slip_prob: float = 0.2):
         self.size = size
@@ -120,13 +120,13 @@ class StochasticMaze:
             self.walls.add((x, 9))
             
     def is_valid_state(self, state: Tuple[int, int]) -> bool:
-        """Check if state is valid"""
+        #Check if state is valid
         x, y = state
         return (0 <= x < self.size and 0 <= y < self.size and 
                 state not in self.walls)
     
     def get_next_state(self, state: Tuple[int, int], action_idx: int) -> Tuple[int, int]:
-        """Get next state with stochastic dynamics"""
+        #Get next state with stochastic dynamics
         x, y = state
         
         # With slip_prob, take random orthogonal action
@@ -145,7 +145,7 @@ class StochasticMaze:
         return next_state
     
     def get_features(self, state: Tuple[int, int], action_idx: int) -> np.ndarray:
-        """Extract features for constraint function"""
+        #Extract features for constraint function
         x, y = state
         dx, dy = self.actions[action_idx]
         next_state = (x + dx, y + dy)
@@ -186,7 +186,7 @@ class StochasticMaze:
         return np.array(features)
 
 class ConstraintLearner:
-    """Multi-user Bayesian constraint learning"""
+    # Multi-user Bayesian constraint learning
     
     def __init__(self, env, config: ExperimentConfig):
         self.env = env
@@ -197,7 +197,7 @@ class ConstraintLearner:
         self.theta_samples = None
         
     def set_true_constraints(self):
-        """Set ground truth constraint parameters"""
+        #Set ground truth constraint parameters
         # Get feature dimension from a sample
         sample_features = self.env.get_features((0, 0), 0)
         self.feature_dim = len(sample_features)
@@ -208,12 +208,12 @@ class ConstraintLearner:
         self.theta_true[2] = 1.0  # Moving toward obstacle feature
         
     def constraint_cost(self, state: Tuple[int, int], action_idx: int, theta: np.ndarray) -> float:
-        """Compute constraint cost for state-action pair"""
+        # Compute constraint cost for state-action pair
         features = self.env.get_features(state, action_idx)
         return np.dot(theta, features)
     
     def compute_q_values(self, reward_func, theta: np.ndarray) -> np.ndarray:
-        """Compute Q-values using value iteration with constraints"""
+        # Compute Q-values using value iteration with constraints
         states = [(x, y) for x in range(self.env.size) for y in range(self.env.size)
                  if self.env.is_valid_state((x, y))]
         state_to_idx = {s: i for i, s in enumerate(states)}
@@ -251,7 +251,7 @@ class ConstraintLearner:
     
     def generate_user_demonstrations(self, user_id: int, reward_func, theta: np.ndarray, 
                                    n_demos: int) -> List[List[Tuple]]:
-        """Generate demonstrations for a user following Boltzmann policy"""
+        # Generate demonstrations for a user following Boltzmann policy
         Q, states, state_to_idx = self.compute_q_values(reward_func, theta)
         
         demonstrations = []
@@ -291,7 +291,7 @@ class ConstraintLearner:
         return demonstrations
     
     def is_user_goal(self, user_id: int, state: Tuple[int, int]) -> bool:
-        """Check if state is goal for specific user"""
+        # Check if state is goal for specific user
         # Different users have different goals
         goal_locations = [
             (9, 9), (9, 0), (0, 9), (7, 7), (2, 8),
@@ -302,7 +302,7 @@ class ConstraintLearner:
         return state == (9, 9)  # Default goal
     
     def log_likelihood(self, theta: np.ndarray, demonstrations: Dict[int, List]) -> float:
-        """Compute log-likelihood across all users"""
+        # Compute log-likelihood across all users
         total_ll = 0.0
         
         for user_id, demos in demonstrations.items():
@@ -332,7 +332,7 @@ class ConstraintLearner:
         return total_ll
     
     def get_user_reward_function(self, user_id: int):
-        """Get reward function for specific user"""
+        # Get reward function for specific user
         def reward_func(state: Tuple[int, int], action_idx: int) -> float:
             next_state = self.env.get_next_state(state, action_idx)
             
@@ -349,7 +349,7 @@ class ConstraintLearner:
         return reward_func
     
     def map_estimation(self, demonstrations: Dict[int, List]) -> np.ndarray:
-        """Maximum a posteriori estimation of constraint parameters"""
+        # Maximum a posteriori estimation of constraint parameters
         
         def objective(theta):
             # Negative log posterior
@@ -382,7 +382,7 @@ class ConstraintLearner:
         return best_theta
     
     def mcmc_sampling(self, demonstrations: Dict[int, List], n_samples: int = 1000) -> np.ndarray:
-        """MCMC sampling from posterior (simplified Metropolis-Hastings)"""
+        # MCMC sampling from posterior (simplified Metropolis-Hastings)
         
         # Initialize chain
         theta_current = self.theta_map.copy() if self.theta_map is not None else np.zeros(self.feature_dim)
@@ -426,7 +426,7 @@ class ConstraintLearner:
         return self.theta_samples
 
 class ExperimentRunner:
-    """Run all experiments from the paper"""
+    # Run all experiments from the paper
     
     def __init__(self, config: ExperimentConfig):
         self.config = config
@@ -499,7 +499,7 @@ class ExperimentRunner:
         return results
     
     def run_baseline_comparison(self) -> Dict:
-        """Compare against baseline methods"""
+        # Compare against baseline methods
         print("\nRunning baseline comparison...")
         
         methods = ['single_user_best', 'single_user_avg', 'pooled_data', 'our_method']
@@ -624,7 +624,7 @@ class ExperimentRunner:
         return results
     
     def run_safety_compositionality(self) -> Dict:
-        """Test safety against malicious users"""
+        # Test safety against malicious users
         print("\nRunning safety compositionality experiment...")
         
         env = GridWorld()
@@ -687,7 +687,7 @@ class ExperimentRunner:
         return results
     
     def compute_constraint_mse(self, env, theta_true: np.ndarray, theta_learned: np.ndarray) -> float:
-        """Compute MSE between true and learned constraint functions"""
+        # Compute MSE between true and learned constraint functions
         mse = 0.0
         count = 0
         
@@ -722,7 +722,7 @@ class ExperimentRunner:
         return violations / total_actions if total_actions > 0 else 0.0
     
     def create_visualizations(self):
-        """Create all visualizations from the paper"""
+        # Create all visualizations from the paper
         print("\nCreating visualizations...")
         
         # Ensure results directory exists
@@ -735,7 +735,7 @@ class ExperimentRunner:
         self.create_combined_paper_figures()
         
     def create_constraint_visualizations(self):
-        """Create constraint heatmaps (Figure 3)"""
+        # Create constraint heatmaps
         environments = [
             ('gridworld', GridWorld()),
             ('stochastic_maze', StochasticMaze())
@@ -855,7 +855,7 @@ class ExperimentRunner:
         plt.show()
         
     def create_sample_efficiency_plot(self):
-        """Create sample efficiency plot"""
+        # Create sample efficiency plot
         demo_counts = [25, 50, 75, 100]
         
         # Data from experiments (these would be computed in real runs)
@@ -880,7 +880,7 @@ class ExperimentRunner:
         plt.show()
         
     def create_safety_compositionality_plot(self):
-        """Create safety compositionality plot"""
+        # Create safety compositionality plot
         methods = ['Vanilla\nIRL', 'Ours\nλ=1.0', 'Ours\nλ=1.5']
         violation_rates = [0.82, 0.05, 0.03]
         colors = ['red', 'lightblue', 'darkblue']
@@ -903,7 +903,7 @@ class ExperimentRunner:
         plt.show()
         
     def create_combined_paper_figures(self):
-        """Create combined figures for the paper"""
+        # Create combined figures for the paper
         fig = plt.figure(figsize=(15, 6))
         
         # Sample efficiency subplot
@@ -982,7 +982,7 @@ class ExperimentRunner:
 
 
 def main():
-    """Main function to run all experiments"""
+    # Main function to run all experiments
     print("=" * 60)
     print("MULTI-USER CONSTRAINT LEARNING EXPERIMENTS")
     print("=" * 60)
