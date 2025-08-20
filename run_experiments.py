@@ -1,22 +1,10 @@
-#!/usr/bin/env python3
-"""
-Targeted experiments to address professor's specific concerns
-Run with: python run_experiments.py
-"""
-
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from main import *
 import os
 
-def address_figure3_concerns():
-    """
-    Address professor's concerns about Figure 3:
-    1. Why constraints seem invariant across x-axis
-    2. Where is the safe corridor in maze
-    3. Show ground truth vs learned comparison
-    """
+def address_figure3():
     print("=" * 60)
     print("ADDRESSING FIGURE 3 CONCERNS")
     print("=" * 60)
@@ -260,7 +248,7 @@ def address_figure3_concerns():
     print(f"Wall region average cost: {np.mean([maze_constraint_matrix[y,x] for x,y in wall_sample if maze_constraint_matrix[y,x] > 0]):.3f}")
 
 def demonstrate_map_implementation():
-    """Show detailed MAP estimation implementation and convergence"""
+    # Show detailed MAP estimation implementation and convergence
     print("\n" + "=" * 60)
     print("MAP ESTIMATION IMPLEMENTATION DETAILS")
     print("=" * 60)
@@ -618,7 +606,7 @@ def generate_paper_figures():
     return True
 
 def run_reproducibility_check():
-    """Full reproducibility check matching paper claims"""
+    # Full reproducibility check
     print("\n" + "=" * 60)
     print("REPRODUCIBILITY CHECK - VALIDATING ALL PAPER CLAIMS")
     print("=" * 60)
@@ -709,13 +697,13 @@ def run_reproducibility_check():
     }
 
 def main():
-    """Run all validation experiments"""
+    # Run all validation experiments
     print("MULTI-USER CONSTRAINT LEARNING - PROFESSOR VALIDATION")
     print("=" * 60)
     print("This script addresses all professor concerns and validates paper claims")
     
     # 1. Address Figure 3 concerns
-    address_figure3_concerns()
+    address_figure3()
     
     # 2. Show MAP implementation details
     theta_learned, opt_history = demonstrate_map_implementation()
