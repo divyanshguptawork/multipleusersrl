@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 Demonstration script showing the corrected implementation working
 This addresses all professor concerns and validates the fixes
